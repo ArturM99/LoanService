@@ -1,23 +1,23 @@
 # Loan Approval Prediction Service
 
-Сервис предсказывает, будет ли одобрена заявка на кредит (`Loan_Status`), по анкетным данным заявителя: пол, семейное положение, доход, размер и срок кредита, кредитная история и т.д.
+The service predicts whether a loan application will be approved (`Loan_Status`), based on applicant data: gender, marital status, income, loan amount and term, credit history, etc.
 
-## Структура проекта
+## Project structure
 
 ```
 .
-├── main.py                    # FastAPI-сервис для инференса
+├── main.py                    # FastAPI inference service
 ├── Model/
-│   ├── pipeline.py            # обучение и автоматический выбор лучшей модели
-│   ├── loan_pipe.pkl          # обученная модель (создаётся pipeline.py)
+│   ├── pipeline.py            # training and automatic best-model selection
+│   ├── loan_pipe.pkl          # trained model (created by pipeline.py)
 │   └── Data/
-│       ├── loan_train.csv     # обучающие данные (не входят в репозиторий)
-│       ├── form_LP001014.json # пример входных данных для /predict
-│       └── form_LP001024.json # пример входных данных для /predict
+│       ├── loan_train.csv     # training data (not included in the repo)
+│       ├── form_LP001014.json # example input data for /predict
+│       └── form_LP001024.json # example input data for /predict
 └── requirements.txt
 ```
 
-## Установка
+## Installation
 
 ```bash
 python -m venv venv
@@ -25,7 +25,7 @@ source venv/bin/activate    # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Минимальный набор зависимостей:
+Minimal dependencies:
 
 ```
 fastapi
@@ -35,24 +35,24 @@ scikit-learn
 joblib
 ```
 
-## Данные
+## Data
 
-Файл `Model/Data/loan_train.csv` в репозиторий не включён. Ожидаемые колонки: `Loan_ID`, `Gender`, `Married`, `Dependents`, `Education`, `Self_Employed`, `ApplicantIncome`, `CoapplicantIncome`, `LoanAmount`, `Loan_Amount_Term`, `Credit_History`, `Property_Area`, `Loan_Status` (целевая переменная — `Y`/`N`).
+The `Model/Data/loan_train.csv` file is not included in the repo. Expected columns: `Loan_ID`, `Gender`, `Married`, `Dependents`, `Education`, `Self_Employed`, `ApplicantIncome`, `CoapplicantIncome`, `LoanAmount`, `Loan_Amount_Term`, `Credit_History`, `Property_Area`, `Loan_Status` (target — `Y`/`N`).
 
-## Обучение модели
+## Training the model
 
 ```bash
 python Model/pipeline.py
 ```
 
-Скрипт:
+The script:
 
-1. Читает `data/loan_train.csv`, убирает `Loan_ID`, переводит `Loan_Status` в бинарный вид (`Y` → 1, `N` → 0).
-2. Числовые признаки заполняет медианой и масштабирует (`StandardScaler`), категориальные — модой и кодирует (`OneHotEncoder`).
-3. Перебирает три модели — `LogisticRegression`, `RandomForestClassifier`, `MLPClassifier` (нейросеть с тремя скрытыми слоями) — через 4-фолдовую кросс-валидацию и выбирает лучшую по accuracy.
-4. Обучает лучшую модель на всех данных и сохраняет вместе с метаданными в `loan_pipe.pkl` (через `joblib`).
+1. Reads `data/loan_train.csv`, drops `Loan_ID`, converts `Loan_Status` to binary (`Y` → 1, `N` → 0).
+2. Fills numerical features with the median and scales them (`StandardScaler`); categorical features are filled with the mode and encoded (`OneHotEncoder`).
+3. Compares three models — `LogisticRegression`, `RandomForestClassifier`, `MLPClassifier` (a neural net with three hidden layers) — via 4-fold cross-validation and picks the best one by accuracy.
+4. Trains the best model on the full dataset and saves it together with metadata to `loan_pipe.pkl` (via `joblib`).
 
-Пример вывода:
+Example output:
 
 ```
 model: LogisticRegression, acc_mean: 0.XXXX, acc_std: 0.XXXX
@@ -61,23 +61,23 @@ model: MLPClassifier, acc_mean: 0.XXXX, acc_std: 0.XXXX
 best model: RandomForestClassifier, accuracy: 0.XXXX
 ```
 
-## Запуск API
+## Running the API
 
 ```bash
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Swagger-документация: `http://localhost:8000/docs`
+Swagger docs: `http://localhost:8000/docs`
 
-### Эндпоинты
+### Endpoints
 
-| Метод | Путь        | Описание                                   |
-|-------|-------------|----------------------------------------------|
-| GET   | `/status`   | Проверка работоспособности сервиса            |
-| GET   | `/version1` | Метаданные модели (тип, автор, дата обучения, accuracy) |
-| POST  | `/predict`  | Предсказание одобрения кредита                |
+| Method | Path        | Description                                              |
+|--------|-------------|------------------------------------------------------------|
+| GET    | `/status`   | Service health check                                        |
+| GET    | `/version1` | Model metadata (type, author, training date, accuracy)      |
+| POST   | `/predict`  | Predict loan approval                                        |
 
-### Пример запроса `POST /predict`
+### Example `POST /predict` request
 
 ```json
 {
@@ -96,7 +96,7 @@ Swagger-документация: `http://localhost:8000/docs`
 }
 ```
 
-### Пример ответа
+### Example response
 
 ```json
 {
@@ -105,10 +105,13 @@ Swagger-документация: `http://localhost:8000/docs`
 }
 ```
 
-`Result` — предсказанный класс: `1.0` (кредит одобрен) или `0.0` (отказ).
+`Result` — predicted class: `1.0` (loan approved) or `0.0` (rejected).
 
-## Важно
+## Notes
 
-- Лучшая модель выбирается автоматически по кросс-валидации на этапе обучения — какая именно модель победила, видно в выводе `pipeline.py` или через эндпоинт `/version1`.
-- `main.py` и `Model/pipeline.py` используют одну и ту же логику препроцессинга через `ColumnTransformer`, поэтому обработка данных при обучении и инференсе идентична.
-- В папке `Model/Data/` лежат готовые примеры входных данных (`form_LP001014.json`, `form_LP001024.json`) — их можно использовать для быстрой проверки эндпоинта `/predict` через Swagger UI или `curl`.
+- The best model is automatically selected via cross-validation during training — which model won can be seen in the `pipeline.py` output or via the `/version1` endpoint.
+- `main.py` and `Model/pipeline.py` use the same preprocessing logic via `ColumnTransformer`, so data handling is identical during training and inference.
+- The `Model/Data/` folder contains ready-made example input files (`form_LP001014.json`, `form_LP001024.json`) that can be used to quickly test the `/predict` endpoint via Swagger UI or `curl`.
+-e 
+---
+🇷🇺 [Читать на русском](https://github.com/ArturM99/LoanService/tree/ru)
