@@ -114,4 +114,4 @@ Swagger docs: `http://localhost:8000/docs`
 - The `Model/Data/` folder contains ready-made example input files (`form_LP001014.json`, `form_LP001024.json`) that can be used to quickly test the `/predict` endpoint via Swagger UI or `curl`.
 -e 
 ---
-🇷🇺 [Читать на русском](https://github.com/ArturM99/LoanService/tree/ru)
+🇷🇺 [Читать на русском](https://github.com/ArturM99/LoanService/tree/RU)
