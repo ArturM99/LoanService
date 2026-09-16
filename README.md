@@ -112,6 +112,5 @@ Swagger docs: `http://localhost:8000/docs`
 - The best model is automatically selected via cross-validation during training — which model won can be seen in the `pipeline.py` output or via the `/version1` endpoint.
 - `main.py` and `Model/pipeline.py` use the same preprocessing logic via `ColumnTransformer`, so data handling is identical during training and inference.
 - The `Model/Data/` folder contains ready-made example input files (`form_LP001014.json`, `form_LP001024.json`) that can be used to quickly test the `/predict` endpoint via Swagger UI or `curl`.
--e 
 ---
 🇷🇺 [Читать на русском](https://github.com/ArturM99/LoanService/tree/RU)
